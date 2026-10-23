@@ -2,13 +2,18 @@
 
 Shared Angular admin console for all GRaCe-GRC projects: review, configuration and dashboards.
 
-> **Status:** starter app. It renders a single page with the heading "Admin Console UI". Features arrive in later stories.
+> **Status:** authorities dashboard at `/authorities`: the list of regulatory authorities and a
+> form to create one.
 
 ## Stack
 - Angular (latest stable at setup), TypeScript
 - Node.js LTS, npm
 
 ## Getting started
+The dashboard calls the [admin console service](https://github.com/GRaCe-GRC/admin-console-service).
+`ng serve` proxies `/api` to it on `http://localhost:8082` (`proxy.conf.json`); start it first (see
+its README).
+
 ```bash
 npm ci
 npm start          # ng serve → http://localhost:4200
@@ -23,6 +28,42 @@ npm run build
 
 Branch verify runs the same commands on every push to a branch and on every pull request, through the
 shared [Angular CI workflow](https://github.com/GRaCe-GRC/.github/blob/main/.github/workflows/angular-ci.yml) (`.github/workflows/branch-verify.yml`).
+
+## Authorities dashboard
+`/authorities` (the home page redirects there):
+
+- A table of authorities: name, jurisdiction, enabled, created at (UTC), created by
+- A form to create one (name and jurisdiction, both required, at most 255 characters). Field errors
+  from the server (`400`) are shown next to the fields; a duplicate name (`409`) shows the server's
+  message. The list reloads after a successful create.
+
+## Project structure
+Code is grouped by feature. Each component has its own folder with `.ts`, `.html`, `.scss` and
+`.spec.ts`. Features are lazy-loaded from `app.routes.ts`.
+
+```
+src/app/
+├── app.*                         root shell (heading and router outlet), providers, routes
+├── core/
+│   └── http/problem-detail.ts    problem details: type and helpers to read detail and field errors
+└── features/
+    └── authorities/
+        ├── authorities.routes.ts           feature routes (lazy-loaded at /authorities)
+        ├── models/authority.ts             Authority, CreateAuthorityRequest
+        ├── data-access/authority-api.ts    GET and POST /api/dashboard/authorities
+        ├── pages/authorities-dashboard/    page: loads the list, creates, maps server errors
+        └── components/
+            ├── authority-table/            presentational: the table
+            └── authority-form/             presentational: the create form and its validation
+```
+
+| Folder | Contains |
+|---|---|
+| `core/` | Code used by the whole app |
+| `features/<feature>/models` | Types |
+| `features/<feature>/data-access` | HTTP services |
+| `features/<feature>/pages` | Routed components that use services |
+| `features/<feature>/components` | Presentational components: inputs and outputs only |
 
 ## Versions and images
 Versions follow semantic versioning and come from the commit messages. Every merge to `main`

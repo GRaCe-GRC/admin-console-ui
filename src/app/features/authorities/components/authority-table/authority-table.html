@@ -1,0 +1,28 @@
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (authorities().length === 0) {
+  <p data-testid="empty">No authorities yet.</p>
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Jurisdiction</th>
+        <th scope="col">Enabled</th>
+        <th scope="col">Created at</th>
+        <th scope="col">Created by</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (authority of authorities(); track authority.id) {
+        <tr>
+          <td>{{ authority.name }}</td>
+          <td>{{ authority.jurisdiction }}</td>
+          <td>{{ authority.enabled ? 'Yes' : 'No' }}</td>
+          <td>{{ authority.createdAt | date: 'medium' : 'UTC' }}</td>
+          <td>{{ authority.createdBy }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
