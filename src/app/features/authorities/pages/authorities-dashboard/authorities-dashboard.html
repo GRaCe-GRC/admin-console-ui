@@ -26,7 +26,7 @@
         </svg>
       </button>
     </div>
-    <app-authority-table [authorities]="authorities()" [loading]="loading()" />
+    <app-authority-table [authorities]="authorities()" [loading]="loading()" (remove)="askToDelete($event)" />
   </section>
 </div>
 
@@ -37,5 +37,15 @@
     [formError]="createError()"
     (create)="create($event)"
     (cancelled)="closeCreate()"
+  />
+</dialog>
+
+<dialog #deleteDialog class="dialog" aria-labelledby="delete-title" data-testid="delete-dialog">
+  <app-authority-delete-dialog
+    [authority]="pendingDelete()"
+    [deleting]="deleting()"
+    [error]="deleteError()"
+    (confirmed)="delete($event)"
+    (cancelled)="closeDelete()"
   />
 </dialog>

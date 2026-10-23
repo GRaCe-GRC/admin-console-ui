@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { Authority } from '../../models/authority';
 
 @Component({
@@ -11,6 +11,7 @@ import { Authority } from '../../models/authority';
 export class AuthorityTable {
   readonly authorities = input.required<Authority[]>();
   readonly loading = input(false);
+  readonly remove = output<Authority>();
 
   protected shortId(authority: Authority): string {
     return authority.id.slice(0, 8);
