@@ -10,15 +10,13 @@ describe('App', () => {
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    expect(fixture.componentInstance).toBeTruthy();
-  });
-
-  it('should render the heading', () => {
+  it('renders the header, the page outlet and the notification region', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Admin Console UI');
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('app-header [data-testid="brand"]')?.textContent?.trim()).toBe('GRaCe-GRC');
+    expect(element.querySelector('main router-outlet')).not.toBeNull();
+    expect(element.querySelector('app-toast [role="status"]')).not.toBeNull();
   });
 });

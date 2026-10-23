@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { detailOf, fieldErrorsOf } from '../../../../core/http/problem-detail';
+import { Notifications } from '../../../../core/notifications/notifications';
 import { AuthorityForm } from '../../components/authority-form/authority-form';
 import { AuthorityTable } from '../../components/authority-table/authority-table';
 import { AuthorityApi } from '../../data-access/authority-api';
@@ -14,7 +15,9 @@ import { Authority, CreateAuthorityRequest } from '../../models/authority';
 })
 export class AuthoritiesDashboard implements OnInit {
   private readonly api = inject(AuthorityApi);
+  private readonly notifications = inject(Notifications);
   private readonly authorityForm = viewChild.required(AuthorityForm);
+  private readonly createDialog = viewChild.required<ElementRef<HTMLDialogElement>>('createDialog');
 
   protected readonly authorities = signal<Authority[]>([]);
   protected readonly loading = signal(false);
@@ -22,6 +25,12 @@ export class AuthoritiesDashboard implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly createError = signal<string | null>(null);
   protected readonly serverErrors = signal<Record<string, string> | null>(null);
+
+  protected readonly countLabel = computed(() => {
+    const count = this.authorities().length;
+    return `${count} ${count === 1 ? 'authority' : 'authorities'}`;
+  });
+  protected readonly enabledCount = computed(() => this.authorities().filter((authority) => authority.enabled).length);
 
   ngOnInit(): void {
     this.load();
@@ -42,14 +51,26 @@ export class AuthoritiesDashboard implements OnInit {
     });
   }
 
+  protected openCreate(): void {
+    this.clearCreateErrors();
+    this.authorityForm().reset();
+    this.createDialog().nativeElement.showModal();
+    this.authorityForm().focus();
+  }
+
+  protected closeCreate(): void {
+    this.createDialog().nativeElement.close();
+  }
+
   protected create(request: CreateAuthorityRequest): void {
     this.submitting.set(true);
-    this.createError.set(null);
-    this.serverErrors.set(null);
+    this.clearCreateErrors();
     this.api.create(request).subscribe({
       next: () => {
         this.submitting.set(false);
+        this.closeCreate();
         this.authorityForm().reset();
+        this.notifications.show('Authority created');
         this.load();
       },
       error: (error: HttpErrorResponse) => {
@@ -57,6 +78,11 @@ export class AuthoritiesDashboard implements OnInit {
         this.showServerError(error);
       },
     });
+  }
+
+  private clearCreateErrors(): void {
+    this.createError.set(null);
+    this.serverErrors.set(null);
   }
 
   private showServerError(error: HttpErrorResponse): void {

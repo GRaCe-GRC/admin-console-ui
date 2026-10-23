@@ -42,20 +42,31 @@ Code is grouped by feature. Each component has its own folder with `.ts`, `.html
 `.spec.ts`. Features are lazy-loaded from `app.routes.ts`.
 
 ```
-src/app/
-├── app.*                         root shell (heading and router outlet), providers, routes
-├── core/
-│   └── http/problem-detail.ts    problem details: type and helpers to read detail and field errors
-└── features/
-    └── authorities/
-        ├── authorities.routes.ts           feature routes (lazy-loaded at /authorities)
-        ├── models/authority.ts             Authority, CreateAuthorityRequest
-        ├── data-access/authority-api.ts    GET and POST /api/dashboard/authorities
-        ├── pages/authorities-dashboard/    page: loads the list, creates, maps server errors
-        └── components/
-            ├── authority-table/            presentational: the table
-            └── authority-form/             presentational: the create form and its validation
+src/
+├── styles.scss                   theme tokens (light and dark), base styles, buttons, dialogs
+├── testing/dialog.ts             test-only polyfill for <dialog> (jsdom has no showModal)
+└── app/
+    ├── app.*                     shell: header, router outlet, notifications; providers, routes
+    ├── core/
+    │   ├── auth/current-user.ts          the signed-in user (hard-coded: Compliance Expert)
+    │   ├── http/problem-detail.ts        problem details: type and helpers to read detail and field errors
+    │   ├── layout/app-header/            header band: logo, product name, user
+    │   ├── layout/logo-mark/             the three-node logo as inline SVG
+    │   └── notifications/                Notifications service and the toast that shows it
+    └── features/
+        └── authorities/
+            ├── authorities.routes.ts           feature routes (lazy-loaded at /authorities)
+            ├── models/authority.ts             Authority, CreateAuthorityRequest
+            ├── data-access/authority-api.ts    GET and POST /api/dashboard/authorities
+            ├── pages/authorities-dashboard/    page: counts, + button, create dialog, server errors
+            └── components/
+                ├── authority-table/            presentational: the table
+                └── authority-form/             presentational: the create form and its validation
 ```
+
+Colours, fonts and shadows are CSS custom properties in `styles.scss`, with dark values under
+`prefers-color-scheme: dark` (or `data-theme="dark"` on the root element). Components only use the
+tokens. Fonts are Plus Jakarta Sans and JetBrains Mono from Google Fonts, with system fallbacks.
 
 | Folder | Contains |
 |---|---|

@@ -1,28 +1,40 @@
 @if (loading()) {
-  <p>Loading…</p>
+  <p class="state" data-testid="loading">Loading authorities…</p>
 } @else if (authorities().length === 0) {
-  <p data-testid="empty">No authorities yet.</p>
+  <p class="state" data-testid="empty">No authorities yet. Use the + button to add the first one.</p>
 } @else {
-  <table>
-    <thead>
-      <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Jurisdiction</th>
-        <th scope="col">Enabled</th>
-        <th scope="col">Created at</th>
-        <th scope="col">Created by</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (authority of authorities(); track authority.id) {
+  <div class="table-wrap">
+    <table>
+      <thead>
         <tr>
-          <td>{{ authority.name }}</td>
-          <td>{{ authority.jurisdiction }}</td>
-          <td>{{ authority.enabled ? 'Yes' : 'No' }}</td>
-          <td>{{ authority.createdAt | date: 'medium' : 'UTC' }}</td>
-          <td>{{ authority.createdBy }}</td>
+          <th scope="col">Authority</th>
+          <th scope="col">Jurisdiction</th>
+          <th scope="col">Status</th>
+          <th scope="col">Created</th>
+          <th scope="col">Created by</th>
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (authority of authorities(); track authority.id) {
+          <tr>
+            <td>
+              <span class="name">{{ authority.name }}</span>
+              <span class="name-id">{{ shortId(authority) }}</span>
+            </td>
+            <td><span class="juris">{{ authority.jurisdiction }}</span></td>
+            <td>
+              <span class="pill" [class.on]="authority.enabled" [class.off]="!authority.enabled">{{
+                authority.enabled ? 'Enabled' : 'Disabled'
+              }}</span>
+            </td>
+            <td class="date">
+              {{ authority.createdAt | date: 'dd MMM yyyy' : 'UTC' }}
+              <small>{{ authority.createdAt | date: 'HH:mm' : 'UTC' }} UTC</small>
+            </td>
+            <td class="by">{{ authority.createdBy }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 }

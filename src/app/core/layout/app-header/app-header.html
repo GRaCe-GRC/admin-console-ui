@@ -1,0 +1,15 @@
+<header class="app-header">
+  <div class="inner">
+    <a class="brand" href="/">
+      <app-logo-mark />
+      <span class="brand-text">
+        <span class="brand-name" data-testid="brand">GRaCe<span>-GRC</span></span>
+        <span class="brand-sub">Admin console</span>
+      </span>
+    </a>
+    <div class="user" [attr.aria-label]="'Signed in as ' + user.name" data-testid="user">
+      <span class="user-name">{{ user.name }}</span>
+      <span class="avatar" aria-hidden="true">{{ user.initials }}</span>
+    </div>
+  </div>
+</header>
