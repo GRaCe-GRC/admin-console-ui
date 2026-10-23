@@ -116,3 +116,31 @@ tbody tr {
   color: var(--muted);
   white-space: nowrap;
 }
+
+.actions {
+  text-align: right;
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  color: var(--muted);
+  transition: all 0.12s ease;
+
+  &:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
+    border-color: var(--danger-bg);
+  }
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}

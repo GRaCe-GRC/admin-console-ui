@@ -57,10 +57,11 @@ src/
         └── authorities/
             ├── authorities.routes.ts           feature routes (lazy-loaded at /authorities)
             ├── models/authority.ts             Authority, CreateAuthorityRequest
-            ├── data-access/authority-api.ts    GET and POST /api/dashboard/authorities
-            ├── pages/authorities-dashboard/    page: counts, + button, create dialog, server errors
+            ├── data-access/authority-api.ts    GET, POST and DELETE /api/dashboard/authorities
+            ├── pages/authorities-dashboard/    page: counts, + button, create and delete dialogs, server errors
             └── components/
-                ├── authority-table/            presentational: the table
+                ├── authority-table/            presentational: the table, with a delete action per row
+                ├── authority-delete-dialog/    presentational: the delete confirmation
                 └── authority-form/             presentational: the create form and its validation
 ```
 

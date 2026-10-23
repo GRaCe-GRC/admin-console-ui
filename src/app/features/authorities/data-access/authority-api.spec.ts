@@ -50,6 +50,28 @@ describe('AuthorityApi', () => {
     expect(completed).toBe(true);
   });
 
+  it('deletes the authority and completes on 204', () => {
+    let completed = false;
+    api.delete(authority.id).subscribe({ complete: () => (completed = true) });
+
+    const request = http.expectOne(`/api/dashboard/authorities/${authority.id}`);
+    expect(request.request.method).toBe('DELETE');
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(completed).toBe(true);
+  });
+
+  it('passes a not-found delete to the caller', () => {
+    let status: number | undefined;
+    api.delete(authority.id).subscribe({ error: (error) => (status = error.status) });
+
+    http
+      .expectOne(`/api/dashboard/authorities/${authority.id}`)
+      .flush({ status: 404, detail: `Authority ${authority.id} not found` }, { status: 404, statusText: 'Not Found' });
+
+    expect(status).toBe(404);
+  });
+
   it('passes errors to the caller', () => {
     let status: number | undefined;
     api.create({ name: 'EBA', jurisdiction: 'EU' }).subscribe({ error: (error) => (status = error.status) });

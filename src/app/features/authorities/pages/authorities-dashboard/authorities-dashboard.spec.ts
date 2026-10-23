@@ -20,6 +20,7 @@ describe('AuthoritiesDashboard', () => {
 
   let findAll: ReturnType<typeof vi.fn<() => Observable<Authority[]>>>;
   let create: ReturnType<typeof vi.fn<(request: CreateAuthorityRequest) => Observable<void>>>;
+  let remove: ReturnType<typeof vi.fn<(id: string) => Observable<void>>>;
   let show: ReturnType<typeof vi.fn<(text: string) => void>>;
   let fixture: ComponentFixture<AuthoritiesDashboard>;
   let page: HTMLElement;
@@ -64,11 +65,12 @@ describe('AuthoritiesDashboard', () => {
   beforeEach(() => {
     findAll = vi.fn<() => Observable<Authority[]>>(() => of([eba, fca]));
     create = vi.fn<(request: CreateAuthorityRequest) => Observable<void>>(() => of(undefined));
+    remove = vi.fn<(id: string) => Observable<void>>(() => of(undefined));
     show = vi.fn<(text: string) => void>();
     TestBed.configureTestingModule({
       imports: [AuthoritiesDashboard],
       providers: [
-        { provide: AuthorityApi, useValue: { findAll, create } },
+        { provide: AuthorityApi, useValue: { findAll, create, delete: remove } },
         { provide: Notifications, useValue: { show } },
       ],
     });
@@ -179,6 +181,94 @@ describe('AuthoritiesDashboard', () => {
     await settle();
     expect(page.querySelector('[data-testid="create-error"]')).toBeNull();
     expect(page.querySelector<HTMLInputElement>('#authority-name')!.value).toBe('');
+  });
+
+  function deleteDialog(): HTMLDialogElement {
+    return page.querySelector<HTMLDialogElement>('[data-testid="delete-dialog"]')!;
+  }
+
+  async function askToDeleteFca(): Promise<void> {
+    page.querySelector<HTMLButtonElement>('[data-testid="delete-9b1d2c3e"]')!.click();
+    await settle();
+  }
+
+  async function confirmDelete(): Promise<void> {
+    page.querySelector<HTMLButtonElement>('[data-testid="confirm-delete"]')!.click();
+    await settle();
+  }
+
+  it('asks for confirmation before deleting', async () => {
+    await render();
+    expect(deleteDialog().open).toBe(false);
+
+    await askToDeleteFca();
+
+    expect(deleteDialog().open).toBe(true);
+    expect(text('delete-text')).toContain('FCA will be removed from the regulatory database');
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('deletes the authority, closes the dialog, confirms and reloads the list', async () => {
+    await render();
+    findAll.mockReturnValue(of([eba]));
+    await askToDeleteFca();
+
+    await confirmDelete();
+
+    expect(remove).toHaveBeenCalledWith(fca.id);
+    expect(deleteDialog().open).toBe(false);
+    expect(show).toHaveBeenCalledWith('Authority deleted');
+    expect(findAll).toHaveBeenCalledTimes(2);
+    expect(text('count')).toBe('1 authority');
+  });
+
+  it('refreshes the list and explains when the authority no longer exists', async () => {
+    remove.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+    await render();
+    await askToDeleteFca();
+
+    await confirmDelete();
+
+    expect(deleteDialog().open).toBe(true);
+    expect(text('delete-error')).toBe('This authority no longer exists. The list has been refreshed.');
+    expect(findAll).toHaveBeenCalledTimes(2);
+    expect(show).not.toHaveBeenCalled();
+  });
+
+  it('explains other delete failures and keeps the dialog open', async () => {
+    remove.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 502 })));
+    await render();
+    await askToDeleteFca();
+
+    await confirmDelete();
+
+    expect(deleteDialog().open).toBe(true);
+    expect(text('delete-error')).toBe('The authority could not be deleted. Try again later.');
+    expect(findAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the delete dialog on cancel without deleting', async () => {
+    await render();
+    await askToDeleteFca();
+
+    page.querySelector<HTMLButtonElement>('[data-testid="cancel-delete"]')!.click();
+    await settle();
+
+    expect(deleteDialog().open).toBe(false);
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('clears an earlier delete error when asked to delete again', async () => {
+    remove.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 502 })));
+    await render();
+    await askToDeleteFca();
+    await confirmDelete();
+    page.querySelector<HTMLButtonElement>('[data-testid="cancel-delete"]')!.click();
+    await settle();
+
+    await askToDeleteFca();
+
+    expect(page.querySelector('[data-testid="delete-error"]')).toBeNull();
   });
 
   it('shows a message when the list cannot be loaded', async () => {

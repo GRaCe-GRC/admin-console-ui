@@ -15,4 +15,8 @@ export class AuthorityApi {
   create(request: CreateAuthorityRequest): Observable<void> {
     return this.http.post(this.url, request, { observe: 'response' }).pipe(map(() => undefined));
   }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete(`${this.url}/${encodeURIComponent(id)}`, { observe: 'response' }).pipe(map(() => undefined));
+  }
 }

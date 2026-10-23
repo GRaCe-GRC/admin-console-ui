@@ -56,6 +56,18 @@ describe('AuthorityTable', () => {
     expect(created.querySelector('small')?.textContent?.trim()).toBe('23:30 UTC');
   });
 
+  it('emits the authority to remove from its delete button', () => {
+    render([eba]);
+    const removed: Authority[] = [];
+    fixture.componentInstance.remove.subscribe((authority) => removed.push(authority));
+
+    const button = element.querySelector<HTMLButtonElement>('[data-testid="delete-3f2c1a9e"]')!;
+    expect(button.getAttribute('aria-label')).toBe('Delete European Banking Authority');
+    button.click();
+
+    expect(removed).toEqual([eba]);
+  });
+
   it('shows a message when there are no authorities', () => {
     render([]);
 
