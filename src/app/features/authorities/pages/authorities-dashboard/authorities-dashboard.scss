@@ -1,10 +1,103 @@
 .dashboard {
   display: grid;
-  gap: 1.5rem;
-  max-width: 64rem;
+  gap: 18px;
 }
 
-.form-error {
+.crumbs {
+  font-size: 0.8rem;
+  color: var(--muted);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+}
+
+.page-head {
+  min-width: 0;
+
+  h1 {
+    margin: 0;
+    font-size: 1.65rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+}
+
+.lede {
+  margin: 4px 0 0;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+.load-error {
   margin: 0;
-  color: #b42318;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.count {
+  font-weight: 600;
+
+  small {
+    font-weight: 500;
+    color: var(--muted);
+    margin-left: 6px;
+    font-size: 0.8rem;
+  }
+}
+
+.add-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--green-2), var(--green));
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(15, 123, 95, 0.32);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(15, 123, 95, 0.4);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  .page-head h1 {
+    font-size: 1.4rem;
+  }
 }

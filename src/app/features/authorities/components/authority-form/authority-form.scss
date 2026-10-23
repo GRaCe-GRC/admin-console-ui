@@ -1,16 +1,100 @@
-.create {
-  display: grid;
-  gap: 0.5rem;
-  max-width: 24rem;
+:host {
+  display: block;
 }
 
-label {
-  display: grid;
-  gap: 0.25rem;
+.band {
+  height: 4px;
+  background: linear-gradient(90deg, var(--green), var(--blue), var(--violet));
 }
 
-.field-error,
+.head {
+  padding: 20px 22px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+}
+
+.close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  flex: none;
+
+  &:hover {
+    background: var(--surface-2);
+  }
+}
+
+.body {
+  padding: 14px 22px 4px;
+  display: grid;
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+
+  label {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  input {
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+
+    &:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.18);
+    }
+  }
+
+  &.invalid input {
+    border-color: var(--danger);
+  }
+}
+
+.err {
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
 .form-error {
   margin: 0;
-  color: #b42318;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.86rem;
+}
+
+.foot {
+  padding: 16px 22px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }

@@ -1,0 +1,5 @@
+<div class="toast-region" role="status" aria-live="polite">
+  @if (notifications.message(); as message) {
+    <div class="toast" data-testid="toast">{{ message }}</div>
+  }
+</div>

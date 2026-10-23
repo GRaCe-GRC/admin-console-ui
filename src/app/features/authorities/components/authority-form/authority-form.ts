@@ -1,8 +1,14 @@
-import { Component, effect, input, output } from '@angular/core';
+import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CURRENT_USER } from '../../../../core/auth/current-user';
 import { CreateAuthorityRequest } from '../../models/authority';
 
 type AuthorityField = 'name' | 'jurisdiction';
+
+const REQUIRED_MESSAGES: Record<AuthorityField, string> = {
+  name: "Enter the authority's name.",
+  jurisdiction: 'Enter the jurisdiction, for example EU or UK.',
+};
 
 @Component({
   selector: 'app-authority-form',
@@ -15,6 +21,10 @@ export class AuthorityForm {
   readonly serverErrors = input<Record<string, string> | null>(null);
   readonly formError = input<string | null>(null);
   readonly create = output<CreateAuthorityRequest>();
+  readonly cancelled = output<void>();
+
+  protected readonly userName = CURRENT_USER.name;
+  private readonly nameInput = viewChild.required<ElementRef<HTMLInputElement>>('nameInput');
 
   protected readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(255)] }),
@@ -38,6 +48,10 @@ export class AuthorityForm {
     this.form.reset();
   }
 
+  focus(): void {
+    this.nameInput().nativeElement.focus();
+  }
+
   protected submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -55,10 +69,10 @@ export class AuthorityForm {
       return control.errors['server'];
     }
     if (control.errors['required']) {
-      return 'Required';
+      return REQUIRED_MESSAGES[field];
     }
     if (control.errors['maxlength']) {
-      return 'At most 255 characters';
+      return 'Use at most 255 characters.';
     }
     return null;
   }

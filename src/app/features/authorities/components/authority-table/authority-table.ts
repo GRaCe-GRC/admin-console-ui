@@ -11,4 +11,8 @@ import { Authority } from '../../models/authority';
 export class AuthorityTable {
   readonly authorities = input.required<Authority[]>();
   readonly loading = input(false);
+
+  protected shortId(authority: Authority): string {
+    return authority.id.slice(0, 8);
+  }
 }

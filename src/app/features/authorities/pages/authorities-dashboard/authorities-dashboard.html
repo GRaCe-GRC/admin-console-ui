@@ -1,16 +1,41 @@
-<section class="dashboard">
-  <h2>Regulatory authorities</h2>
+<div class="dashboard">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <span>Regulatory data</span>
+    <span aria-hidden="true">›</span>
+    <b aria-current="page">Authorities</b>
+  </nav>
 
+  <div class="page-head">
+    <h1>Regulatory authorities</h1>
+    <p class="lede">The bodies that issue the frameworks and regulations you map controls to.</p>
+  </div>
+
+  @if (loadError(); as message) {
+    <p class="load-error" role="alert" data-testid="load-error">{{ message }}</p>
+  }
+
+  <section class="card" aria-labelledby="authorities-count">
+    <div class="card-bar">
+      <div class="count" id="authorities-count">
+        <span data-testid="count">{{ countLabel() }}</span>
+        <small data-testid="enabled-count">{{ enabledCount() }} enabled</small>
+      </div>
+      <button class="add-btn" type="button" aria-label="New authority" title="New authority" data-testid="add" (click)="openCreate()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
+    </div>
+    <app-authority-table [authorities]="authorities()" [loading]="loading()" />
+  </section>
+</div>
+
+<dialog #createDialog class="dialog" aria-labelledby="create-title" data-testid="create-dialog">
   <app-authority-form
     [submitting]="submitting()"
     [serverErrors]="serverErrors()"
     [formError]="createError()"
     (create)="create($event)"
+    (cancelled)="closeCreate()"
   />
-
-  @if (loadError(); as message) {
-    <p class="form-error" role="alert" data-testid="load-error">{{ message }}</p>
-  } @else {
-    <app-authority-table [authorities]="authorities()" [loading]="loading()" />
-  }
-</section>
+</dialog>
