@@ -21,9 +21,38 @@ npm test -- --watch=false
 npm run build
 ```
 
-CI runs the same commands on every pull request through the shared
-[Angular CI workflow](https://github.com/GRaCe-GRC/.github/blob/main/.github/workflows/angular-ci.yml)
-(`.github/workflows/ci.yml`).
+Branch verify runs the same commands on every push to a branch and on every pull request, through the
+shared [Angular CI workflow](https://github.com/GRaCe-GRC/.github/blob/main/.github/workflows/angular-ci.yml) (`.github/workflows/branch-verify.yml`).
+
+## Versions and images
+Versions follow semantic versioning and come from the commit messages. Every merge to `main`
+runs `.github/workflows/release.yml`: the CI again, then the shared
+[release workflow](https://github.com/GRaCe-GRC/.github/blob/main/.github/workflows/README.md#release):
+
+| Commit | Release |
+|---|---|
+| `fix: GRC-<n>: ...` | Patch |
+| `feat: GRC-<n>: ...` | Minor |
+| `chore:`, `docs:`, ... | No release |
+
+A release creates the `vX.Y.Z` tag, a GitHub Release with notes, and the image
+`ghcr.io/grace-grc/admin-console-ui:<version>` (also tagged `latest`, for `linux/amd64` and
+`linux/arm64`). The release build sets the version in `package.json` without committing it.
+
+The image serves the built app with nginx on port 80. Requests to `/api/` go to the admin
+console service; every other path returns the app, so routes work on reload.
+
+| Environment variable | Default |
+|---|---|
+| `ADMIN_CONSOLE_SERVICE_URL` | `http://admin-console-service:8080` |
+
+nginx stops at startup if that host cannot be resolved. To run the image against a service on
+your machine:
+
+```bash
+docker run --rm -p 4200:80 -e ADMIN_CONSOLE_SERVICE_URL=http://host.docker.internal:8080 \
+  ghcr.io/grace-grc/admin-console-ui:latest
+```
 
 ## Architecture
 This console serves all three projects. Their architecture diagrams show one admin console
