@@ -1,0 +1,25 @@
+<form class="create" [formGroup]="form" (ngSubmit)="submit()">
+  <h3>New authority</h3>
+  <label>
+    Name
+    <input formControlName="name" name="name" [attr.aria-invalid]="fieldError('name') ? true : null" />
+  </label>
+  @if (fieldError('name'); as message) {
+    <p class="field-error" data-testid="name-error">{{ message }}</p>
+  }
+  <label>
+    Jurisdiction
+    <input
+      formControlName="jurisdiction"
+      name="jurisdiction"
+      [attr.aria-invalid]="fieldError('jurisdiction') ? true : null"
+    />
+  </label>
+  @if (fieldError('jurisdiction'); as message) {
+    <p class="field-error" data-testid="jurisdiction-error">{{ message }}</p>
+  }
+  <button type="submit" [disabled]="submitting()">Create authority</button>
+  @if (formError(); as message) {
+    <p class="form-error" role="alert" data-testid="create-error">{{ message }}</p>
+  }
+</form>

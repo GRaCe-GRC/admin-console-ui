@@ -1,0 +1,16 @@
+<section class="dashboard">
+  <h2>Regulatory authorities</h2>
+
+  <app-authority-form
+    [submitting]="submitting()"
+    [serverErrors]="serverErrors()"
+    [formError]="createError()"
+    (create)="create($event)"
+  />
+
+  @if (loadError(); as message) {
+    <p class="form-error" role="alert" data-testid="load-error">{{ message }}</p>
+  } @else {
+    <app-authority-table [authorities]="authorities()" [loading]="loading()" />
+  }
+</section>
