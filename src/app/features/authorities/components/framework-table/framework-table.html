@@ -1,0 +1,58 @@
+@if (frameworks().length === 0) {
+  <p class="state" data-testid="empty">This authority has no frameworks yet. Use the + button to add one.</p>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Framework</th>
+          <th scope="col">Short name</th>
+          <th scope="col">Files</th>
+          <th scope="col">Coverage</th>
+          <th scope="col">Status</th>
+          <th scope="col">Created</th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (framework of frameworks(); track framework.id) {
+          <tr>
+            <td>
+              <span class="name">{{ framework.name }}</span>
+              @if (framework.citation) {
+                <span class="sub">{{ framework.citation }}</span>
+              }
+            </td>
+            <td>
+              @if (framework.shortName) {
+                <span class="tag">{{ framework.shortName }}</span>
+              }
+            </td>
+            <td><span class="count-chip">{{ filesLabel(framework) }}</span></td>
+            <td><app-coverage-bar [coverage]="framework.coverage" /></td>
+            <td>
+              <span class="pill" [class.on]="framework.enabled" [class.off]="!framework.enabled">{{
+                framework.enabled ? 'Enabled' : 'Disabled'
+              }}</span>
+            </td>
+            <td class="date">{{ framework.createdAt | date: 'dd MMM yyyy' : 'UTC' }}</td>
+            <td class="actions">
+              <button
+                class="icon-btn"
+                type="button"
+                title="Delete"
+                [attr.aria-label]="'Delete ' + framework.name"
+                [attr.data-testid]="'delete-' + shortId(framework)"
+                (click)="remove.emit(framework)"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

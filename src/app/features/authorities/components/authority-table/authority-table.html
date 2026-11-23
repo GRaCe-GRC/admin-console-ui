@@ -20,7 +20,7 @@
         @for (authority of authorities(); track authority.id) {
           <tr>
             <td>
-              <span class="name">{{ authority.name }}</span>
+              <a class="name" [routerLink]="['/authorities', authority.id]" [attr.data-testid]="'open-' + shortId(authority)">{{ authority.name }}</a>
               <span class="name-id">{{ shortId(authority) }}</span>
             </td>
             <td><span class="juris">{{ authority.jurisdiction }}</span></td>

@@ -1,0 +1,77 @@
+<div class="band"></div>
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="head">
+    <div>
+      <h2 id="framework-create-title">New framework</h2>
+      <p>Issued by {{ authorityName() }}.</p>
+    </div>
+    <button class="close" type="button" aria-label="Close" data-testid="close" (click)="cancelled.emit()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="body">
+    <div class="field" [class.invalid]="fieldError('name')">
+      <label for="framework-name">Name</label>
+      <input
+        #nameInput
+        id="framework-name"
+        formControlName="name"
+        name="name"
+        maxlength="255"
+        autocomplete="off"
+        placeholder="e.g. Digital Operational Resilience Act"
+        [attr.aria-invalid]="fieldError('name') ? true : null"
+        [attr.aria-describedby]="fieldError('name') ? 'framework-name-error' : null"
+      />
+      @if (fieldError('name'); as message) {
+        <span class="err" id="framework-name-error" data-testid="name-error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field" [class.invalid]="fieldError('shortName')">
+      <label for="framework-short-name">Short name <small>(optional)</small></label>
+      <input
+        id="framework-short-name"
+        formControlName="shortName"
+        name="shortName"
+        maxlength="255"
+        autocomplete="off"
+        placeholder="e.g. DORA"
+        [attr.aria-invalid]="fieldError('shortName') ? true : null"
+        [attr.aria-describedby]="fieldError('shortName') ? 'framework-short-name-error' : null"
+      />
+      @if (fieldError('shortName'); as message) {
+        <span class="err" id="framework-short-name-error" data-testid="shortName-error">{{ message }}</span>
+      }
+    </div>
+
+    <div class="field" [class.invalid]="fieldError('citation')">
+      <label for="framework-citation">Citation <small>(optional)</small></label>
+      <input
+        id="framework-citation"
+        formControlName="citation"
+        name="citation"
+        maxlength="255"
+        autocomplete="off"
+        placeholder="e.g. Regulation (EU) 2022/2554"
+        [attr.aria-invalid]="fieldError('citation') ? true : null"
+        [attr.aria-describedby]="fieldError('citation') ? 'framework-citation-error' : null"
+      />
+      @if (fieldError('citation'); as message) {
+        <span class="err" id="framework-citation-error" data-testid="citation-error">{{ message }}</span>
+      }
+    </div>
+
+    @if (formError(); as message) {
+      <p class="form-error" role="alert" data-testid="create-error">{{ message }}</p>
+    }
+  </div>
+
+  <div class="foot">
+    <button class="btn" type="button" data-testid="cancel" (click)="cancelled.emit()">Cancel</button>
+    <button class="btn primary" type="submit" [disabled]="submitting()">Create framework</button>
+  </div>
+</form>

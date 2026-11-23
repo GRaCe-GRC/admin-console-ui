@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { DashboardAuthority, DashboardFramework } from '../../../../core/dashboard/dashboard';
 import { AuthorityTable } from './authority-table';
 
@@ -27,6 +28,8 @@ describe('AuthorityTable', () => {
   let fixture: ComponentFixture<AuthorityTable>;
   let element: HTMLElement;
 
+  beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter([])] }));
+
   function render(authorities: DashboardAuthority[], loading = false): void {
     fixture = TestBed.createComponent(AuthorityTable);
     fixture.componentRef.setInput('authorities', authorities);
@@ -47,6 +50,14 @@ describe('AuthorityTable', () => {
     expect(authority.querySelector('.name-id')?.textContent?.trim()).toBe('3f2c1a9e');
     expect(jurisdiction.querySelector('.juris')?.textContent?.trim()).toBe('EU');
     expect(createdBy.textContent?.trim()).toBe('admin-console');
+  });
+
+  it('links the name to the authority page', () => {
+    render([eba]);
+
+    const link = element.querySelector<HTMLAnchorElement>('[data-testid="open-3f2c1a9e"]')!;
+    expect(link.tagName).toBe('A');
+    expect(link.getAttribute('href')).toBe('/authorities/3f2c1a9e-7d4b-4e8a-9c1f-2b6d5e8a7c40');
   });
 
   it('shows how many frameworks each authority has', () => {

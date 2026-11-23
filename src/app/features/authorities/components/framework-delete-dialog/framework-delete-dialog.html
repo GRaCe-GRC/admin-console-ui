@@ -1,0 +1,42 @@
+<div class="head">
+  <div>
+    <h2 id="framework-delete-title">Delete framework?</h2>
+    @if (framework(); as current) {
+      @if (fileCount() > 0) {
+        <p data-testid="framework-delete-text"><b>{{ current.name }}</b></p>
+      } @else {
+        <p data-testid="framework-delete-text"><b>{{ current.name }}</b> will be removed from the regulatory database. This cannot be undone.</p>
+      }
+    }
+  </div>
+  <button class="close" type="button" aria-label="Close" data-testid="framework-delete-close" (click)="cancelled.emit()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  </button>
+</div>
+
+@if (blockedMessage(); as message) {
+  <p class="notice warn" data-testid="framework-delete-blocked">{{ message }}</p>
+}
+
+@if (error(); as message) {
+  <p class="form-error" role="alert" data-testid="framework-delete-error">{{ message }}</p>
+}
+
+<div class="foot">
+  @if (fileCount() > 0) {
+    <button class="btn" type="button" data-testid="cancel-framework-delete" (click)="cancelled.emit()">Close</button>
+  } @else {
+    <button class="btn" type="button" data-testid="cancel-framework-delete" (click)="cancelled.emit()">Cancel</button>
+    <button
+      class="btn danger"
+      type="button"
+      data-testid="confirm-framework-delete"
+      [disabled]="deleting() || !framework()"
+      (click)="confirm()"
+    >
+      Delete
+    </button>
+  }
+</div>
