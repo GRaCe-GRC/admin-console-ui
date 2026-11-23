@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { polyfillDialog } from '../../../../../testing/dialog';
 import { Dashboard, DashboardAuthority, DashboardFramework } from '../../../../core/dashboard/dashboard';
@@ -95,6 +96,7 @@ describe('AuthoritiesDashboard', () => {
     TestBed.configureTestingModule({
       imports: [AuthoritiesDashboard],
       providers: [
+        provideRouter([]),
         { provide: DashboardApi, useValue: { get } },
         { provide: AuthorityApi, useValue: { create, delete: remove } },
         { provide: Notifications, useValue: { show } },

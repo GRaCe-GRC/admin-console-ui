@@ -1,0 +1,12 @@
+@if (coverage().total > 0) {
+  <span
+    class="cov"
+    data-testid="coverage"
+    [attr.title]="coverage().mapped + ' of ' + coverage().total + ' provisions have at least one mapped control'"
+  >
+    <span class="bar" aria-hidden="true"><i [style.width.%]="percent()"></i></span>
+    <b>{{ percent() }}% <small>{{ coverage().mapped }}/{{ coverage().total }}</small></b>
+  </span>
+} @else {
+  <span class="hint" data-testid="no-provisions">No provisions yet</span>
+}

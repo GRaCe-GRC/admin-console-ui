@@ -39,6 +39,7 @@ tbody td {
 }
 
 tbody tr {
+  position: relative;
   transition: background 0.12s ease;
 
   &:last-child td {
@@ -52,6 +53,18 @@ tbody tr {
 
 .name {
   font-weight: 600;
+  color: var(--link);
+  text-decoration: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .name-id {
@@ -133,6 +146,8 @@ tbody tr {
 }
 
 .icon-btn {
+  position: relative;
+  z-index: 1;
   width: 34px;
   height: 34px;
   border-radius: 9px;

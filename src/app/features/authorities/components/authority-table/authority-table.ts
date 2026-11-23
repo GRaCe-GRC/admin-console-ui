@@ -1,10 +1,11 @@
 import { DatePipe } from '@angular/common';
 import { Component, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { DashboardAuthority } from '../../../../core/dashboard/dashboard';
 
 @Component({
   selector: 'app-authority-table',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './authority-table.html',
   styleUrl: './authority-table.scss',
 })

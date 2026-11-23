@@ -2,8 +2,9 @@
 
 Shared Angular admin console for all GRaCe-GRC projects: review, configuration and dashboards.
 
-> **Status:** authorities dashboard at `/authorities`: the list of regulatory authorities, loaded
-> from `GET /api/dashboard`, with forms to create and delete one.
+> **Status:** authorities dashboard at `/authorities` (create and delete authorities) and an
+> authority page at `/authorities/<id>` (its frameworks, with coverage; create and delete
+> frameworks), loaded from `GET /api/dashboard`.
 
 ## Stack
 - Angular (latest stable at setup), TypeScript
@@ -40,10 +41,29 @@ shared [Angular CI workflow](https://github.com/GRaCe-GRC/.github/blob/main/.git
 - A delete confirmation. An authority that still has frameworks cannot be deleted: the dialog says
   so instead of offering Delete, and a `409` from the server shows its message.
 
+Each authority's name links to its page.
+
+## Authority page
+`/authorities/<id>`:
+
+- Breadcrumb Regulatory data › Authorities › the authority, and a summary: jurisdiction, status,
+  created (date and by whom) and the number of frameworks
+- A table of its frameworks: name and citation, short name, number of files, coverage (a bar,
+  the percentage and `mapped/total` lowest-level provisions with at least one mapped control),
+  status and created date
+- A form to create a framework (name required; short name and citation optional; at most 255
+  characters each) → `POST /api/dashboard/frameworks` with the authority's id. Field errors (`400`)
+  are shown next to the fields, a duplicate name (`409`) shows the server's message
+- A delete confirmation (`DELETE /api/dashboard/frameworks/{id}`). A framework that still has files
+  cannot be deleted: the dialog says so instead of offering Delete, and a `409` from the server
+  shows its message
+- An unknown id shows "Authority not found" with a link back to the authorities
+
 The data comes from one call, `GET /api/dashboard`, which returns the whole tree (authorities,
 frameworks, files, requirements, coverage, mappings and the control library). `DashboardStore`
 loads it once and every page reads it from there; after each create or delete the page calls
-`reload()`. Writes go to their own endpoints (`POST`/`DELETE /api/dashboard/authorities`).
+`reload()`. Writes go to their own endpoints (`POST`/`DELETE /api/dashboard/authorities` and
+`/api/dashboard/frameworks`).
 
 ## Project structure
 Code is grouped by feature. Each component has its own folder with `.ts`, `.html`, `.scss` and
@@ -66,14 +86,20 @@ src/
     │   └── notifications/                Notifications service and the toast that shows it
     └── features/
         └── authorities/
-            ├── authorities.routes.ts           feature routes (lazy-loaded at /authorities)
-            ├── models/authority.ts             CreateAuthorityRequest
+            ├── authorities.routes.ts           feature routes (lazy-loaded at /authorities): '' and ':id'
+            ├── models/                         CreateAuthorityRequest, CreateFrameworkRequest
             ├── data-access/authority-api.ts    POST and DELETE /api/dashboard/authorities
+            ├── data-access/framework-api.ts    POST and DELETE /api/dashboard/frameworks
             ├── pages/authorities-dashboard/    page: counts, + button, create and delete dialogs, server errors
+            ├── pages/authority-page/           page: breadcrumb, summary, frameworks, create and delete dialogs
             └── components/
-                ├── authority-table/            presentational: the table, with a delete action per row
+                ├── authority-table/            presentational: the table, a link and a delete action per row
                 ├── authority-delete-dialog/    presentational: the delete confirmation
-                └── authority-form/             presentational: the create form and its validation
+                ├── authority-form/             presentational: the create form and its validation
+                ├── framework-table/            presentational: the frameworks of an authority
+                ├── framework-delete-dialog/    presentational: the delete confirmation
+                ├── framework-form/             presentational: the create form and its validation
+                └── coverage-bar/               presentational: coverage as a bar, a percentage and mapped/total
 ```
 
 Colours, fonts and shadows are CSS custom properties in `styles.scss`, with dark values under
