@@ -2,8 +2,8 @@
 
 Shared Angular admin console for all GRaCe-GRC projects: review, configuration and dashboards.
 
-> **Status:** authorities dashboard at `/authorities`: the list of regulatory authorities and a
-> form to create one.
+> **Status:** authorities dashboard at `/authorities`: the list of regulatory authorities, loaded
+> from `GET /api/dashboard`, with forms to create and delete one.
 
 ## Stack
 - Angular (latest stable at setup), TypeScript
@@ -32,10 +32,18 @@ shared [Angular CI workflow](https://github.com/GRaCe-GRC/.github/blob/main/.git
 ## Authorities dashboard
 `/authorities` (the home page redirects there):
 
-- A table of authorities: name, jurisdiction, enabled, created at (UTC), created by
+- A table of authorities: name, jurisdiction, number of frameworks, enabled, created at (UTC),
+  created by
 - A form to create one (name and jurisdiction, both required, at most 255 characters). Field errors
   from the server (`400`) are shown next to the fields; a duplicate name (`409`) shows the server's
-  message. The list reloads after a successful create.
+  message.
+- A delete confirmation. An authority that still has frameworks cannot be deleted: the dialog says
+  so instead of offering Delete, and a `409` from the server shows its message.
+
+The data comes from one call, `GET /api/dashboard`, which returns the whole tree (authorities,
+frameworks, files, requirements, coverage, mappings and the control library). `DashboardStore`
+loads it once and every page reads it from there; after each create or delete the page calls
+`reload()`. Writes go to their own endpoints (`POST`/`DELETE /api/dashboard/authorities`).
 
 ## Project structure
 Code is grouped by feature. Each component has its own folder with `.ts`, `.html`, `.scss` and
@@ -49,6 +57,9 @@ src/
     ├── app.*                     shell: header, router outlet, notifications; providers, routes
     ├── core/
     │   ├── auth/current-user.ts          the signed-in user (hard-coded: Compliance Expert)
+    │   ├── dashboard/dashboard.ts        the GET /api/dashboard response types, shared by every feature
+    │   ├── dashboard/dashboard-api.ts    GET /api/dashboard
+    │   ├── dashboard/dashboard-store.ts  the loaded dashboard as signals, load() once and reload() after writes
     │   ├── http/problem-detail.ts        problem details: type and helpers to read detail and field errors
     │   ├── layout/app-header/            header band: logo, product name, user
     │   ├── layout/logo-mark/             the three-node logo as inline SVG
@@ -56,8 +67,8 @@ src/
     └── features/
         └── authorities/
             ├── authorities.routes.ts           feature routes (lazy-loaded at /authorities)
-            ├── models/authority.ts             Authority, CreateAuthorityRequest
-            ├── data-access/authority-api.ts    GET, POST and DELETE /api/dashboard/authorities
+            ├── models/authority.ts             CreateAuthorityRequest
+            ├── data-access/authority-api.ts    POST and DELETE /api/dashboard/authorities
             ├── pages/authorities-dashboard/    page: counts, + button, create and delete dialogs, server errors
             └── components/
                 ├── authority-table/            presentational: the table, with a delete action per row

@@ -1,21 +1,13 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Authority } from '../models/authority';
 import { AuthorityApi } from './authority-api';
 
 describe('AuthorityApi', () => {
   let api: AuthorityApi;
   let http: HttpTestingController;
 
-  const authority: Authority = {
-    id: '3f2c1a9e-7d4b-4e8a-9c1f-2b6d5e8a7c40',
-    name: 'EBA',
-    jurisdiction: 'EU',
-    createdAt: '2026-10-01T10:15:30Z',
-    enabled: true,
-    createdBy: 'admin-console',
-  };
+  const id = '3f2c1a9e-7d4b-4e8a-9c1f-2b6d5e8a7c40';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -26,17 +18,6 @@ describe('AuthorityApi', () => {
   });
 
   afterEach(() => http.verify());
-
-  it('gets the dashboard list', () => {
-    let result: Authority[] | undefined;
-    api.findAll().subscribe((authorities) => (result = authorities));
-
-    const request = http.expectOne('/api/dashboard/authorities');
-    expect(request.request.method).toBe('GET');
-    request.flush([authority]);
-
-    expect(result).toEqual([authority]);
-  });
 
   it('posts the new authority and completes on 201 with an empty body', () => {
     let completed = false;
@@ -52,9 +33,9 @@ describe('AuthorityApi', () => {
 
   it('deletes the authority and completes on 204', () => {
     let completed = false;
-    api.delete(authority.id).subscribe({ complete: () => (completed = true) });
+    api.delete(id).subscribe({ complete: () => (completed = true) });
 
-    const request = http.expectOne(`/api/dashboard/authorities/${authority.id}`);
+    const request = http.expectOne(`/api/dashboard/authorities/${id}`);
     expect(request.request.method).toBe('DELETE');
     request.flush(null, { status: 204, statusText: 'No Content' });
 
@@ -63,11 +44,11 @@ describe('AuthorityApi', () => {
 
   it('passes a not-found delete to the caller', () => {
     let status: number | undefined;
-    api.delete(authority.id).subscribe({ error: (error) => (status = error.status) });
+    api.delete(id).subscribe({ error: (error) => (status = error.status) });
 
     http
-      .expectOne(`/api/dashboard/authorities/${authority.id}`)
-      .flush({ status: 404, detail: `Authority ${authority.id} not found` }, { status: 404, statusText: 'Not Found' });
+      .expectOne(`/api/dashboard/authorities/${id}`)
+      .flush({ status: 404, detail: `Authority ${id} not found` }, { status: 404, statusText: 'Not Found' });
 
     expect(status).toBe(404);
   });

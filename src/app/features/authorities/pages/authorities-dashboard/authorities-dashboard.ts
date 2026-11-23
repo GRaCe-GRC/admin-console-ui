@@ -1,12 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { DashboardAuthority } from '../../../../core/dashboard/dashboard';
+import { DashboardStore } from '../../../../core/dashboard/dashboard-store';
 import { detailOf, fieldErrorsOf } from '../../../../core/http/problem-detail';
 import { Notifications } from '../../../../core/notifications/notifications';
 import { AuthorityDeleteDialog } from '../../components/authority-delete-dialog/authority-delete-dialog';
 import { AuthorityForm } from '../../components/authority-form/authority-form';
 import { AuthorityTable } from '../../components/authority-table/authority-table';
 import { AuthorityApi } from '../../data-access/authority-api';
-import { Authority, CreateAuthorityRequest } from '../../models/authority';
+import { CreateAuthorityRequest } from '../../models/authority';
 
 @Component({
   selector: 'app-authorities-dashboard',
@@ -16,18 +18,23 @@ import { Authority, CreateAuthorityRequest } from '../../models/authority';
 })
 export class AuthoritiesDashboard implements OnInit {
   private readonly api = inject(AuthorityApi);
+  private readonly store = inject(DashboardStore);
   private readonly notifications = inject(Notifications);
   private readonly authorityForm = viewChild.required(AuthorityForm);
   private readonly createDialog = viewChild.required<ElementRef<HTMLDialogElement>>('createDialog');
   private readonly deleteDialog = viewChild.required<ElementRef<HTMLDialogElement>>('deleteDialog');
 
-  protected readonly authorities = signal<Authority[]>([]);
-  protected readonly loading = signal(false);
-  protected readonly loadError = signal<string | null>(null);
+  protected readonly authorities = this.store.authorities;
+  protected readonly loading = computed(() => this.store.loading() && this.store.dashboard() === null);
+  protected readonly loadError = computed(() => (this.store.loadFailed() ? 'The authorities could not be loaded. Try again later.' : null));
   protected readonly submitting = signal(false);
   protected readonly createError = signal<string | null>(null);
   protected readonly serverErrors = signal<Record<string, string> | null>(null);
-  protected readonly pendingDelete = signal<Authority | null>(null);
+  protected readonly pendingDelete = signal<DashboardAuthority | null>(null);
+  protected readonly deleteTarget = computed(() => {
+    const pending = this.pendingDelete();
+    return pending ? (this.authorities().find((authority) => authority.id === pending.id) ?? pending) : null;
+  });
   protected readonly deleting = signal(false);
   protected readonly deleteError = signal<string | null>(null);
 
@@ -38,22 +45,7 @@ export class AuthoritiesDashboard implements OnInit {
   protected readonly enabledCount = computed(() => this.authorities().filter((authority) => authority.enabled).length);
 
   ngOnInit(): void {
-    this.load();
-  }
-
-  protected load(): void {
-    this.loading.set(true);
-    this.loadError.set(null);
-    this.api.findAll().subscribe({
-      next: (authorities) => {
-        this.authorities.set(authorities);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loadError.set('The authorities could not be loaded. Try again later.');
-        this.loading.set(false);
-      },
-    });
+    this.store.load();
   }
 
   protected openCreate(): void {
@@ -76,7 +68,7 @@ export class AuthoritiesDashboard implements OnInit {
         this.closeCreate();
         this.authorityForm().reset();
         this.notifications.show('Authority created');
-        this.load();
+        this.store.reload();
       },
       error: (error: HttpErrorResponse) => {
         this.submitting.set(false);
@@ -85,7 +77,7 @@ export class AuthoritiesDashboard implements OnInit {
     });
   }
 
-  protected askToDelete(authority: Authority): void {
+  protected askToDelete(authority: DashboardAuthority): void {
     this.pendingDelete.set(authority);
     this.deleteError.set(null);
     this.deleteDialog().nativeElement.showModal();
@@ -95,7 +87,7 @@ export class AuthoritiesDashboard implements OnInit {
     this.deleteDialog().nativeElement.close();
   }
 
-  protected delete(authority: Authority): void {
+  protected delete(authority: DashboardAuthority): void {
     this.deleting.set(true);
     this.deleteError.set(null);
     this.api.delete(authority.id).subscribe({
@@ -104,13 +96,16 @@ export class AuthoritiesDashboard implements OnInit {
         this.closeDelete();
         this.pendingDelete.set(null);
         this.notifications.show('Authority deleted');
-        this.load();
+        this.store.reload();
       },
       error: (error: HttpErrorResponse) => {
         this.deleting.set(false);
         if (error.status === 404) {
           this.deleteError.set('This authority no longer exists. The list has been refreshed.');
-          this.load();
+          this.store.reload();
+        } else if (error.status === 409) {
+          this.deleteError.set(detailOf(error) ?? 'This authority has frameworks. Delete them first.');
+          this.store.reload();
         } else {
           this.deleteError.set('The authority could not be deleted. Try again later.');
         }
