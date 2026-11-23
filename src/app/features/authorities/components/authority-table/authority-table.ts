@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, input, output } from '@angular/core';
-import { Authority } from '../../models/authority';
+import { DashboardAuthority } from '../../../../core/dashboard/dashboard';
 
 @Component({
   selector: 'app-authority-table',
@@ -9,11 +9,16 @@ import { Authority } from '../../models/authority';
   styleUrl: './authority-table.scss',
 })
 export class AuthorityTable {
-  readonly authorities = input.required<Authority[]>();
+  readonly authorities = input.required<DashboardAuthority[]>();
   readonly loading = input(false);
-  readonly remove = output<Authority>();
+  readonly remove = output<DashboardAuthority>();
 
-  protected shortId(authority: Authority): string {
+  protected shortId(authority: DashboardAuthority): string {
     return authority.id.slice(0, 8);
+  }
+
+  protected frameworksLabel(authority: DashboardAuthority): string {
+    const count = authority.frameworks.length;
+    return `${count} ${count === 1 ? 'framework' : 'frameworks'}`;
   }
 }

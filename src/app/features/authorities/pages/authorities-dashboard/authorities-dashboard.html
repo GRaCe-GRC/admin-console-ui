@@ -42,7 +42,7 @@
 
 <dialog #deleteDialog class="dialog" aria-labelledby="delete-title" data-testid="delete-dialog">
   <app-authority-delete-dialog
-    [authority]="pendingDelete()"
+    [authority]="deleteTarget()"
     [deleting]="deleting()"
     [error]="deleteError()"
     (confirmed)="delete($event)"

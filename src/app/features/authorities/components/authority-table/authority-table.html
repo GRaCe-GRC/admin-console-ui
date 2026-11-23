@@ -9,6 +9,7 @@
         <tr>
           <th scope="col">Authority</th>
           <th scope="col">Jurisdiction</th>
+          <th scope="col">Frameworks</th>
           <th scope="col">Status</th>
           <th scope="col">Created</th>
           <th scope="col">Created by</th>
@@ -23,6 +24,7 @@
               <span class="name-id">{{ shortId(authority) }}</span>
             </td>
             <td><span class="juris">{{ authority.jurisdiction }}</span></td>
+            <td><span class="count-chip">{{ frameworksLabel(authority) }}</span></td>
             <td>
               <span class="pill" [class.on]="authority.enabled" [class.off]="!authority.enabled">{{
                 authority.enabled ? 'Enabled' : 'Disabled'

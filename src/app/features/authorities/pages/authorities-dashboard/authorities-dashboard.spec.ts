@@ -1,24 +1,49 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 import { polyfillDialog } from '../../../../../testing/dialog';
+import { Dashboard, DashboardAuthority, DashboardFramework } from '../../../../core/dashboard/dashboard';
+import { DashboardApi } from '../../../../core/dashboard/dashboard-api';
 import { Notifications } from '../../../../core/notifications/notifications';
 import { AuthorityApi } from '../../data-access/authority-api';
-import { Authority, CreateAuthorityRequest } from '../../models/authority';
+import { CreateAuthorityRequest } from '../../models/authority';
 import { AuthoritiesDashboard } from './authorities-dashboard';
 
 describe('AuthoritiesDashboard', () => {
-  const eba: Authority = {
+  const eba: DashboardAuthority = {
     id: '3f2c1a9e-7d4b-4e8a-9c1f-2b6d5e8a7c40',
     name: 'European Banking Authority',
     jurisdiction: 'EU',
     createdAt: '2026-10-01T10:15:30Z',
     enabled: true,
     createdBy: 'admin-console',
+    frameworks: [],
   };
-  const fca: Authority = { ...eba, id: '9b1d2c3e-0000-4000-8000-000000000001', name: 'FCA', jurisdiction: 'UK', enabled: false };
+  const fca: DashboardAuthority = {
+    ...eba,
+    id: '9b1d2c3e-0000-4000-8000-000000000001',
+    name: 'FCA',
+    jurisdiction: 'UK',
+    enabled: false,
+  };
 
-  let findAll: ReturnType<typeof vi.fn<() => Observable<Authority[]>>>;
+  const framework: DashboardFramework = {
+    id: '7a6b5c4d-0000-4000-8000-000000000001',
+    name: 'DORA',
+    shortName: 'DORA',
+    citation: null,
+    enabled: true,
+    createdAt: '2026-10-02T09:00:00Z',
+    createdBy: 'admin-console',
+    coverage: { mapped: 0, total: 0 },
+    files: [],
+  };
+
+  function dashboardOf(...authorities: DashboardAuthority[]): Observable<Dashboard> {
+    return of({ authorities, controlGroups: [], ungroupedControls: [] });
+  }
+
+  let get: ReturnType<typeof vi.fn<() => Observable<Dashboard>>>;
   let create: ReturnType<typeof vi.fn<(request: CreateAuthorityRequest) => Observable<void>>>;
   let remove: ReturnType<typeof vi.fn<(id: string) => Observable<void>>>;
   let show: ReturnType<typeof vi.fn<(text: string) => void>>;
@@ -63,14 +88,15 @@ describe('AuthoritiesDashboard', () => {
   beforeAll(() => polyfillDialog());
 
   beforeEach(() => {
-    findAll = vi.fn<() => Observable<Authority[]>>(() => of([eba, fca]));
+    get = vi.fn<() => Observable<Dashboard>>(() => dashboardOf(eba, fca));
     create = vi.fn<(request: CreateAuthorityRequest) => Observable<void>>(() => of(undefined));
     remove = vi.fn<(id: string) => Observable<void>>(() => of(undefined));
     show = vi.fn<(text: string) => void>();
     TestBed.configureTestingModule({
       imports: [AuthoritiesDashboard],
       providers: [
-        { provide: AuthorityApi, useValue: { findAll, create, delete: remove } },
+        { provide: DashboardApi, useValue: { get } },
+        { provide: AuthorityApi, useValue: { create, delete: remove } },
         { provide: Notifications, useValue: { show } },
       ],
     });
@@ -95,7 +121,7 @@ describe('AuthoritiesDashboard', () => {
   });
 
   it('uses the singular for one authority', async () => {
-    findAll.mockReturnValue(of([eba]));
+    get.mockReturnValue(dashboardOf(eba));
     await render();
 
     expect(text('count')).toBe('1 authority');
@@ -114,20 +140,26 @@ describe('AuthoritiesDashboard', () => {
 
   it('creates the authority, closes the dialog, confirms and reloads the list', async () => {
     await render();
-    findAll.mockReturnValue(of([eba, fca, { ...eba, id: 'new', name: 'ESMA' }]));
+    get.mockReturnValue(dashboardOf(eba, fca, { ...eba, id: 'new', name: 'ESMA' }));
 
     await openAndSubmit('ESMA', 'EU');
 
     expect(create).toHaveBeenCalledWith({ name: 'ESMA', jurisdiction: 'EU' });
     expect(dialog().open).toBe(false);
     expect(show).toHaveBeenCalledWith('Authority created');
-    expect(findAll).toHaveBeenCalledTimes(2);
+    expect(get).toHaveBeenCalledTimes(2);
     expect(text('count')).toBe('3 authorities');
   });
 
   it('keeps the dialog open and shows the server message for a duplicate name', async () => {
     create.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status: 409, error: { detail: "An authority named 'EBA' already exists" } })),
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 409,
+            error: { detail: "An authority named 'EBA' already exists" },
+          }),
+      ),
     );
     await render();
 
@@ -149,7 +181,13 @@ describe('AuthoritiesDashboard', () => {
 
   it('shows the field errors the server returns', async () => {
     create.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status: 400, error: { errors: { jurisdiction: 'must not be blank' } } })),
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: { errors: { jurisdiction: 'must not be blank' } },
+          }),
+      ),
     );
     await render();
 
@@ -210,7 +248,7 @@ describe('AuthoritiesDashboard', () => {
 
   it('deletes the authority, closes the dialog, confirms and reloads the list', async () => {
     await render();
-    findAll.mockReturnValue(of([eba]));
+    get.mockReturnValue(dashboardOf(eba));
     await askToDeleteFca();
 
     await confirmDelete();
@@ -218,7 +256,7 @@ describe('AuthoritiesDashboard', () => {
     expect(remove).toHaveBeenCalledWith(fca.id);
     expect(deleteDialog().open).toBe(false);
     expect(show).toHaveBeenCalledWith('Authority deleted');
-    expect(findAll).toHaveBeenCalledTimes(2);
+    expect(get).toHaveBeenCalledTimes(2);
     expect(text('count')).toBe('1 authority');
   });
 
@@ -231,8 +269,62 @@ describe('AuthoritiesDashboard', () => {
 
     expect(deleteDialog().open).toBe(true);
     expect(text('delete-error')).toBe('This authority no longer exists. The list has been refreshed.');
-    expect(findAll).toHaveBeenCalledTimes(2);
+    expect(get).toHaveBeenCalledTimes(2);
     expect(show).not.toHaveBeenCalled();
+  });
+
+  it('shows the server message and refreshes the list when the authority still has frameworks', async () => {
+    remove.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 409,
+            error: { detail: `Authority ${fca.id} has frameworks. Delete them first.` },
+          }),
+      ),
+    );
+    await render();
+    get.mockReturnValue(dashboardOf(eba, { ...fca, frameworks: [framework] }));
+    await askToDeleteFca();
+
+    await confirmDelete();
+
+    expect(deleteDialog().open).toBe(true);
+    expect(text('delete-error')).toBe(`Authority ${fca.id} has frameworks. Delete them first.`);
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(text('delete-blocked')).toBe('It has 1 framework. Delete it first, then delete this authority.');
+    expect(page.querySelector('[data-testid="confirm-delete"]')).toBeNull();
+  });
+
+  it('falls back to a default message for a 409 without detail', async () => {
+    remove.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409, error: {} })));
+    await render();
+    await askToDeleteFca();
+
+    await confirmDelete();
+
+    expect(text('delete-error')).toBe('This authority has frameworks. Delete them first.');
+  });
+
+  it('explains before deleting that an authority with frameworks cannot be deleted yet', async () => {
+    get.mockReturnValue(dashboardOf(eba, { ...fca, frameworks: [framework] }));
+    await render();
+
+    await askToDeleteFca();
+
+    expect(text('delete-blocked')).toBe('It has 1 framework. Delete it first, then delete this authority.');
+    expect(page.querySelector('[data-testid="confirm-delete"]')).toBeNull();
+  });
+
+  it('loads the dashboard once and keeps the table while it reloads', async () => {
+    await render();
+    get.mockReturnValue(new Subject<Dashboard>());
+
+    await openAndSubmit('ESMA', 'EU');
+
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(page.querySelector('[data-testid="loading"]')).toBeNull();
+    expect(text('count')).toBe('2 authorities');
   });
 
   it('explains other delete failures and keeps the dialog open', async () => {
@@ -244,7 +336,7 @@ describe('AuthoritiesDashboard', () => {
 
     expect(deleteDialog().open).toBe(true);
     expect(text('delete-error')).toBe('The authority could not be deleted. Try again later.');
-    expect(findAll).toHaveBeenCalledTimes(1);
+    expect(get).toHaveBeenCalledTimes(1);
   });
 
   it('closes the delete dialog on cancel without deleting', async () => {
@@ -272,7 +364,7 @@ describe('AuthoritiesDashboard', () => {
   });
 
   it('shows a message when the list cannot be loaded', async () => {
-    findAll.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 502 })));
+    get.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 502 })));
     await render();
 
     expect(text('load-error')).toBe('The authorities could not be loaded. Try again later.');

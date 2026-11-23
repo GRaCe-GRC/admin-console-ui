@@ -1,23 +1,24 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Authority } from '../../models/authority';
+import { DashboardAuthority } from '../../../../core/dashboard/dashboard';
 import { AuthorityDeleteDialog } from './authority-delete-dialog';
 
 describe('AuthorityDeleteDialog', () => {
-  const eba: Authority = {
+  const eba: DashboardAuthority = {
     id: '3f2c1a9e-7d4b-4e8a-9c1f-2b6d5e8a7c40',
     name: 'European Banking Authority',
     jurisdiction: 'EU',
     createdAt: '2026-10-01T10:15:30Z',
     enabled: true,
     createdBy: 'admin-console',
+    frameworks: [],
   };
 
   let fixture: ComponentFixture<AuthorityDeleteDialog>;
   let element: HTMLElement;
-  let confirmed: Authority[];
+  let confirmed: DashboardAuthority[];
   let cancelled: number;
 
-  function render(authority: Authority | null, inputs: { deleting?: boolean; error?: string | null } = {}): void {
+  function render(authority: DashboardAuthority | null, inputs: { deleting?: boolean; error?: string | null } = {}): void {
     fixture = TestBed.createComponent(AuthorityDeleteDialog);
     element = fixture.nativeElement as HTMLElement;
     confirmed = [];
@@ -84,5 +85,39 @@ describe('AuthorityDeleteDialog', () => {
     expect(element.querySelector('[data-testid="delete-error"]')?.textContent?.trim()).toBe(
       'The authority could not be deleted. Try again later.',
     );
+  });
+
+  it('explains that the frameworks must be deleted first and offers no Delete button', () => {
+    const framework = {
+      id: '7a6b5c4d-0000-4000-8000-000000000001',
+      name: 'DORA',
+      shortName: null,
+      citation: null,
+      enabled: true,
+      createdAt: '2026-10-02T09:00:00Z',
+      createdBy: 'admin-console',
+      coverage: { mapped: 0, total: 0 },
+      files: [],
+    };
+    render({ ...eba, frameworks: [framework, { ...framework, id: 'other' }] });
+
+    expect(element.querySelector('[data-testid="delete-text"]')?.textContent?.trim()).toBe('European Banking Authority');
+    expect(element.querySelector('[data-testid="delete-blocked"]')?.textContent?.trim()).toBe(
+      'It has 2 frameworks. Delete them first, then delete this authority.',
+    );
+    expect(element.querySelector('[data-testid="confirm-delete"]')).toBeNull();
+    expect(button('cancel-delete').textContent?.trim()).toBe('Close');
+
+    render({ ...eba, frameworks: [framework] });
+    expect(element.querySelector('[data-testid="delete-blocked"]')?.textContent?.trim()).toBe(
+      'It has 1 framework. Delete it first, then delete this authority.',
+    );
+  });
+
+  it('shows no blocked notice for an authority without frameworks', () => {
+    render(eba);
+
+    expect(element.querySelector('[data-testid="delete-blocked"]')).toBeNull();
+    expect(button('cancel-delete').textContent?.trim()).toBe('Cancel');
   });
 });
